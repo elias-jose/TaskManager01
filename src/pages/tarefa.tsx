@@ -1,11 +1,13 @@
 import { useParams } from "react-router-dom";
 import { Task } from "../types/Task";
+import EditarTarefaModal from "../components/editarTarefa";
 import { useEffect, useState } from "react";
 
 export default function DetalhesTarefa() {
   const { id } = useParams();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [task, setTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null); // Para poder editar
 
   useEffect(() => {
     const stored = localStorage.getItem("tarefas");
@@ -32,8 +34,6 @@ export default function DetalhesTarefa() {
     );
   }
 
-  console.log(localStorage.getItem("tarefas"));
-
   const onToggle = (id: number) => {
     const updatedTasks1 = tasks.map((task) =>
       task.id === id ? { ...task, completo: true } : task
@@ -52,6 +52,20 @@ export default function DetalhesTarefa() {
     localStorage.setItem("tarefas", JSON.stringify(updatedTasks));
 
     // Recarrega a página
+    window.location.reload();
+  };
+
+  const saveTasks = (updatedTasks: Task[]) => {
+    setTasks(updatedTasks);
+    localStorage.setItem("tarefas", JSON.stringify(updatedTasks));
+  };
+
+  const handleEdit = (updatedTask: Task) => {
+    const updatedTasks = tasks.map((editartask) =>
+      editartask.id === updatedTask.id ? updatedTask : editartask
+    );
+    saveTasks(updatedTasks);
+
     window.location.reload();
   };
 
@@ -77,12 +91,27 @@ export default function DetalhesTarefa() {
 
       <div>
         <button
-          className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md hover:shadow-lg transition duration-300"
+          className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md hover:shadow-lg transition duration-300 m-1"
           onClick={() => onDelete(task.id)}
         >
           Eliminar
         </button>
+        <button
+          className="bg-sky-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded shadow-md hover:shadow-lg transition duration-300 m-1"
+          onClick={() => setEditingTask(task)}
+        >
+          Editar
+        </button>
       </div>
+
+      {editingTask && (
+        <EditarTarefaModal
+          task={editingTask}
+          isOpen={true}
+          onClose={() => setEditingTask(null)}
+          onSave={handleEdit}
+        />
+      )}
     </div>
   );
 }
